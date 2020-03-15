@@ -47,17 +47,17 @@ public class FraudDetection {
     }
 
     private BigDecimal shiftCheckWindow(CreditCardTransaction transaction, BigDecimal sum, Deque<CreditCardTransaction> checkWindow24hours) {
-        Duration currentDuration = Duration.ZERO;
-        if (!checkWindow24hours.isEmpty())
-            currentDuration = Duration.between(checkWindow24hours.peek().getTimestamp(), transaction.getTimestamp());
-
+        Duration currentDuration = getDuration(transaction, checkWindow24hours);
         while (currentDuration.compareTo(TWENTY_FOUR_HOURS) > 0) {
             sum = sum.subtract(checkWindow24hours.pollFirst().getAmount());
-            if (checkWindow24hours.isEmpty())
-                currentDuration = Duration.ZERO;
-            else
-                currentDuration = Duration.between(checkWindow24hours.peek().getTimestamp(), transaction.getTimestamp());
+            currentDuration = getDuration(transaction, checkWindow24hours);
         }
         return sum;
+    }
+
+    private Duration getDuration(CreditCardTransaction transaction, Deque<CreditCardTransaction> checkWindow24hours) {
+        if (checkWindow24hours.isEmpty())
+            return Duration.ZERO;
+        return Duration.between(checkWindow24hours.peek().getTimestamp(), transaction.getTimestamp());
     }
 }
